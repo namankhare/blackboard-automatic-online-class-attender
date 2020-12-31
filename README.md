@@ -1,6 +1,6 @@
 # BlackBoard Online Class Attender Bot
 
-This bot attends the online classes held on BlackBoard, according to the given timetable.
+This bot attends the online classes held on BlackBoard, according to the given timetable using selenium and python3.
 
 ## Configure
 
