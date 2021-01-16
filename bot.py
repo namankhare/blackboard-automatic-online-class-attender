@@ -148,12 +148,12 @@ def joinclass(class_name, start_time, end_time):
     classbtn.click()
     time.sleep(5)
     try:
-      sessionlist = driver.find_element_by_id('sessions-list')
-        courseRoomText = driver.find_element_by_xpath(
+     sessionlist = driver.find_element_by_id('sessions-list')
+     courseRoomText = driver.find_element_by_xpath(
             '//*[@id="sessions-list"]/li[1]/a/span').get_attribute("innerText")
-        print('str(courseRoomText): ' + str(courseRoomText))
-        # TODO: find sessionlisttext when room created
-        if str(courseRoomText) == "Course Room":
+     print('str(courseRoomText): ' + str(courseRoomText))
+     # TODO: find sessionlisttext when room created
+     if str(courseRoomText) == "Course Room":
             sessionlist.click()
             clickRoom = driver.find_element_by_xpath(
                 '//*[@id="sessions-list"]/li[2]/a')
@@ -172,7 +172,7 @@ def joinclass(class_name, start_time, end_time):
             skiptutorial = driver.find_element_by_xpath(
                 """//*[@id="announcement-modal-page-wrap"]/div/div[4]/button""")
             skiptutorial.click()
-        elif str(courseRoomText) != "Course Room":
+     elif str(courseRoomText) != "Course Room":
             clickRoom = driver.find_element_by_xpath(
                 '//*[@id="sessions-list"]/li[1]/a')
             clickRoom.click()
@@ -286,10 +286,10 @@ if __name__ == "__main__":
        op = int(
         input(("1. Modify Timetable\n2. View Timetable\n3. Start Bot\nEnter option : ")))
 
-    if(op == 1):
+       if(op == 1):
         add_timetable()
-    if(op == 2):
+       if(op == 2):
         view_timetable()
-    if(op == 3):
+       if(op == 3):
         sched()
         # joinclass("COMPUTATIONAL MATHEMATICS", "22:39", "20:50")
