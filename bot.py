@@ -94,6 +94,8 @@ def add_timetable():
         c = conn.cursor()
 
         # Insert a row of data
+        c.execute(
+        '''CREATE TABLE IF NOT EXISTS timetable(class text, start_time text, end_time text, day text)''')
         c.execute("INSERT INTO timetable VALUES ('%s','%s','%s','%s')" %
                   (name, start_time, end_time, day))
 
@@ -108,6 +110,8 @@ def add_timetable():
 def view_timetable():
     conn = sqlite3.connect('timetable.db')
     c = conn.cursor()
+    c.execute(
+        '''CREATE TABLE IF NOT EXISTS timetable(class text, start_time text, end_time text, day text)''')
     for row in c.execute('SELECT * FROM timetable'):
         print(row)
     conn.close()
@@ -133,9 +137,12 @@ def login():
 
 
 def joinclass(class_name, start_time, end_time):
-    # start_browser()
-    global driver
+    #for localtest
+    start_browser()
 
+    #using db  
+    # global driver
+   
     try_time = int(start_time.split(":")[1]) + 15
     try_time = start_time.split(":")[0] + ":" + str(try_time)
 
@@ -148,46 +155,64 @@ def joinclass(class_name, start_time, end_time):
     classbtn.click()
     time.sleep(5)
     try:
-     sessionlist = driver.find_element_by_id('sessions-list')
-     courseRoomText = driver.find_element_by_xpath(
-            '//*[@id="sessions-list"]/li[1]/a/span').get_attribute("innerText")
-     print('str(courseRoomText): ' + str(courseRoomText))
-     # TODO: find sessionlisttext when room created
-     if str(courseRoomText) == "Course Room":
-            sessionlist.click()
-            clickRoom = driver.find_element_by_xpath(
-                '//*[@id="sessions-list"]/li[2]/a')
-            clickRoom.click()
-            print("join button clicked!")
-            print('Joining: ' + str(driver.find_element_by_xpath(
-                '//*[@id="sessions-list"]/li[2]/a/span')))
+        sessionlist = driver.find_element_by_id('sessions-list')
+        items = sessionlist.find_elements_by_tag_name("li")
+        print ('Total no. of session under this course: ' + str(len(items)))
+        time.sleep(2)
+        try:
+            driver.execute_script("""
+            var session= document.getElementById('sessions-list');
+            var lists = session.getElementsByTagName('li');
+            for (let index = 0; index < lists.length; index++) {
+                if(lists[index].innerText.trim() === "Course Room"){
+                    lists[index].getElementsByTagName('a')[0].click();
+                }
+            }
+            """)
+            # time.sleep(10)
+            driver.switch_to_window(driver.window_handles[1])
+            
+            n=1
+            while n<2:
+                try:
+                    #  options
+                    # time.sleep(5)
+                    # driver.find_element_by_css_selector('#techcheck-modal > div.modal-content-wrap.techcheck-audio-wrapper > div > button').click()
+                    # driver.find_element_by_css_selector('#announcement-modal-page-wrap > button').click()
+                    driver.execute_script("""
+                        localStorage.setItem("techcheck.status", "completed");
+                        localStorage.setItem("techcheck.initial-techcheck", "completed");
+                        localStorage.setItem("ftue.announcement.introduction", true);
+                        localStorage.setItem("apollo.hidesrnotification", true);
+                        localStorage.setItem("new.tutorials-menu-button.private-chat", true);
+                    """)
+                    time.sleep(2)
+                    driver.execute_script("""
+                        document.querySelector('#techcheck-modal > div.modal-content-wrap.techcheck-audio-wrapper > div > button').click();
+                    """)
+                    driver.execute_script("""
+                        document.querySelector('#announcement-modal-page-wrap > button').click();
+                    """)
+                    driver.execute_script("""
+                        document.querySelector("#techcheck-modal > div.modal-content-wrap.techcheck-video-wrapper > div > button").click();
+                    """)
+                    print(driver.find_element_by_xpath('//*[@id="side-panel-open"]').is_displayed())
+                    print("ok")
+                    n=2
+                except:
+                    driver.execute_script("""
+                        localStorage.setItem("techcheck.status", "completed");
+                        localStorage.setItem("techcheck.initial-techcheck", "completed");
+                        localStorage.setItem("ftue.announcement.introduction", true);
+                        localStorage.setItem("apollo.hidesrnotification", true);
+                        localStorage.setItem("new.tutorials-menu-button.private-chat", true);
+                    """)
+                    print("not ok")
+                    time.sleep(2)
 
-            # options
-            skipaudio = driver.find_element_by_xpath(
-                """//*[@id="dialog-description-audio"]/div[3]/button""")
-            skipaudio.click()
-            skipvideo = driver.find_element_by_xpath(
-                """//*[@id="techcheck-modal"]/button""")
-            skipvideo.click()
-            skiptutorial = driver.find_element_by_xpath(
-                """//*[@id="announcement-modal-page-wrap"]/div/div[4]/button""")
-            skiptutorial.click()
-     elif str(courseRoomText) != "Course Room":
-            clickRoom = driver.find_element_by_xpath(
-                '//*[@id="sessions-list"]/li[1]/a')
-            clickRoom.click()
-            print('Joining: ' + str(driver.find_element_by_xpath(
-                '//*[@id="sessions-list"]/li[1]/a/span')))
-            # options
-            skipaudio = driver.find_element_by_xpath(
-                """//*[@id="dialog-description-audio"]/div[3]/button""")
-            skipaudio.click()
-            skipvideo = driver.find_element_by_xpath(
-                """//*[@id="techcheck-modal"]/button""")
-            skipvideo.click()
-            skiptutorial = driver.find_element_by_xpath(
-                """//*[@id="announcement-modal-page-wrap"]/div/div[4]/button""")
-            skiptutorial.click()
+        except:
+            time.sleep(1)
+
     except:
         # join button not found
         # refresh every minute until found
@@ -244,11 +269,14 @@ def sched():
         end_time = row[2]
         day = row[3]
 
+        
+
         if day.lower() == "monday":
             schedule.every().monday.at(start_time).do(
                 joinclass, name, start_time, end_time)
             print("Scheduled class '%s' on %s at %s" % (name, day, start_time))
         if day.lower() == "tuesday":
+            print('day hai: ', day)
             schedule.every().tuesday.at(start_time).do(
                 joinclass, name, start_time, end_time)
             print("Scheduled class '%s' on %s at %s" % (name, day, start_time))
@@ -278,6 +306,8 @@ def sched():
     while True:
         # Checks whether a scheduled task
         # is pending to run or not
+        all_jobs = schedule.get_jobs()
+        # print(all_jobs)
         schedule.run_pending()
         time.sleep(1)
 
@@ -291,5 +321,5 @@ if __name__ == "__main__":
        if(op == 2):
         view_timetable()
        if(op == 3):
-        sched()
-        # joinclass("COMPUTATIONAL MATHEMATICS", "22:39", "20:50")
+        # sched()
+        joinclass("PROJECT-I", "23:52", "20:50")
